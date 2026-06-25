@@ -5,6 +5,7 @@ import { AppConfigModule } from './common/config';
 import { DatabaseModule } from './common/database';
 import { UsersModule } from './modules/users/users.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
+import { DailyPlansModule } from './modules/daily-plans/daily-plans.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ActivitiesModule } from './modules/activities/activities.module';
     // 业务模块
     UsersModule,
     ActivitiesModule,
+    DailyPlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],
