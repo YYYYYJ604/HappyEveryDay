@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfigModule } from './common/config';
 import { DatabaseModule } from './common/database';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -11,6 +12,9 @@ import { DatabaseModule } from './common/database';
 
     // 数据库连接（TypeORM）
     DatabaseModule,
+
+    // 业务模块
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
