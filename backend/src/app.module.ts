@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppConfigModule } from './common/config';
 
 @Module({
-  imports: [],
+  imports: [
+    // 全局配置模块（必须在最前面加载）
+    AppConfigModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
