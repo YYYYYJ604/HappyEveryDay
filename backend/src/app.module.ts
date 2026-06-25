@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
 import { DailyPlansModule } from './modules/daily-plans/daily-plans.module';
 import { MoodsModule } from './modules/moods/moods.module';
+import { InterestsModule } from './modules/interests/interests.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MoodsModule } from './modules/moods/moods.module';
     ActivitiesModule,
     DailyPlansModule,
     MoodsModule,
+    InterestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
