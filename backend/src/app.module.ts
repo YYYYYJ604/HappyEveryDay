@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { AppConfigModule } from './common/config';
 import { DatabaseModule } from './common/database';
 import { UsersModule } from './modules/users/users.module';
+import { ActivitiesModule } from './modules/activities/activities.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UsersModule } from './modules/users/users.module';
 
     // 业务模块
     UsersModule,
+    ActivitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
