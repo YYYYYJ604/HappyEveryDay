@@ -6,6 +6,7 @@ import { DatabaseModule } from './common/database';
 import { UsersModule } from './modules/users/users.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
 import { DailyPlansModule } from './modules/daily-plans/daily-plans.module';
+import { MoodsModule } from './modules/moods/moods.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DailyPlansModule } from './modules/daily-plans/daily-plans.module';
     UsersModule,
     ActivitiesModule,
     DailyPlansModule,
+    MoodsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
