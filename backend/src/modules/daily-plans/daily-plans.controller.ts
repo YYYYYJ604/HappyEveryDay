@@ -23,13 +23,18 @@ import {
   ApiBody,
   ApiQuery,
   ApiParam,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { DailyPlansService } from './daily-plans.service';
 import {
   GeneratePlanDto,
   GeneratePlanResponseDto,
+  PlanItemDto,
+  TodayProgressDto,
   DailyPlanQueryDto,
 } from './dto/daily-plan.dto';
+import { DailyPlanEntity } from './entities/daily-plan.entity';
 
 /**
  * 每日计划控制器
@@ -39,6 +44,7 @@ import {
  */
 @ApiTags('每日计划')
 @ApiBearerAuth('JWT-auth')
+@ApiExtraModels(PlanItemDto, GeneratePlanResponseDto, TodayProgressDto)
 @Controller('daily-plans')
 export class DailyPlansController {
   constructor(private readonly dailyPlansService: DailyPlansService) {}
@@ -75,16 +81,15 @@ export class DailyPlansController {
           properties: {
             plans: {
               type: 'array',
-              description: '3 个时长的计划列表（5min / 30min / 2h）',
+              items: { $ref: getSchemaPath(PlanItemDto) },
+              description: '3 个时长的计划列表',
             },
           },
         },
       },
     },
   })
-  async generate(
-    @Body() dto: GeneratePlanDto,
-  ) {
+  async generate(@Body() dto: GeneratePlanDto) {
     // TODO: 从 JWT 获取当前用户 ID
     const userId = 'current-user-id';
     const result = await this.dailyPlansService.generate(userId, dto);
@@ -112,6 +117,7 @@ export class DailyPlansController {
       properties: {
         data: {
           type: 'array',
+          items: { $ref: getSchemaPath(PlanItemDto) },
           description: '今日计划列表，按 durationType 排序',
         },
       },
@@ -122,6 +128,27 @@ export class DailyPlansController {
     const userId = 'current-user-id';
     const plans = await this.dailyPlansService.findToday(userId);
     return { data: plans };
+  }
+
+  /**
+   * GET /daily-plans/today/progress
+   *
+   * 获取今日计划进度统计
+   */
+  @Get('today/progress')
+  @ApiOperation({
+    summary: '获取今日计划进度',
+    description: '返回今日计划的总数、已完成、已跳过、待完成数量统计。',
+  })
+  @ApiOkResponse({
+    description: '今日进度统计',
+    type: TodayProgressDto,
+  })
+  async todayProgress() {
+    // TODO: 从 JWT 获取当前用户 ID
+    const userId = 'current-user-id';
+    const progress = await this.dailyPlansService.getTodayProgress(userId);
+    return { data: progress };
   }
 
   /**
@@ -142,13 +169,22 @@ export class DailyPlansController {
     example: '2026-06-25',
   })
   @ApiBadRequestResponse({ description: '日期格式错误' })
-  @ApiOkResponse({ description: '指定日期的计划列表' })
+  @ApiOkResponse({
+    description: '指定日期的计划列表',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(PlanItemDto) },
+        },
+      },
+    },
+  })
   async findByDate(@Param('date') date: string) {
-    // 校验日期格式 YYYY-MM-DD
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       throw new BadRequestException('日期格式错误，预期 YYYY-MM-DD');
     }
-
     // TODO: 从 JWT 获取当前用户 ID
     const userId = 'current-user-id';
     const plans = await this.dailyPlansService.findByDate(userId, date);
@@ -203,7 +239,19 @@ export class DailyPlansController {
     description: '结束日期 YYYY-MM-DD',
     example: '2026-06-30',
   })
-  @ApiOkResponse({ description: '历史计划分页列表' })
+  @ApiOkResponse({
+    description: '历史计划分页列表',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(PlanItemDto) },
+        },
+        total: { type: 'integer', example: 42 },
+      },
+    },
+  })
   async findHistory(@Query() query: DailyPlanQueryDto) {
     // TODO: 从 JWT 获取当前用户 ID
     const userId = 'current-user-id';
@@ -232,7 +280,15 @@ export class DailyPlansController {
     description: '计划 UUID',
     example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
   })
-  @ApiOkResponse({ description: '更新后的计划' })
+  @ApiOkResponse({
+    description: '更新后的计划',
+    schema: {
+      type: 'object',
+      properties: {
+        data: { $ref: getSchemaPath(PlanItemDto) },
+      },
+    },
+  })
   @ApiNotFoundResponse({ description: '计划不存在' })
   @ApiConflictResponse({ description: '该计划已完成' })
   @ApiBadRequestResponse({ description: 'UUID 格式错误' })
@@ -260,7 +316,15 @@ export class DailyPlansController {
     description: '计划 UUID',
     example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
   })
-  @ApiOkResponse({ description: '更新后的计划' })
+  @ApiOkResponse({
+    description: '更新后的计划',
+    schema: {
+      type: 'object',
+      properties: {
+        data: { $ref: getSchemaPath(PlanItemDto) },
+      },
+    },
+  })
   @ApiNotFoundResponse({ description: '计划不存在' })
   @ApiConflictResponse({ description: '已完成计划不可跳过' })
   @ApiBadRequestResponse({ description: 'UUID 格式错误' })

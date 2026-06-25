@@ -3,17 +3,13 @@ import {
   Logger,
   NotFoundException,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DailyPlanEntity } from './entities/daily-plan.entity';
-import { ENV } from '../../common/config/env.config';
 import {
   GeneratePlanDto,
-  GeneratePlanResponseDto,
-  PlanItemDto,
   DailyPlanQueryDto,
 } from './dto/daily-plan.dto';
 
@@ -122,11 +118,13 @@ export class DailyPlansService {
   }> {
     const planDate = dto.planDate || this.getTodayDate();
     const timeSlot = this.getCurrentTimeSlot();
+    const isHistorical = dto.planDate && dto.planDate !== this.getTodayDate();
 
     // 检查是否已有计划
     if (!dto.force) {
       const existing = await this.planRepo.find({
         where: { userId, planDate, timeSlot },
+        order: { durationType: 'ASC' },
       });
       if (existing.length > 0) {
         // 如果已存在且不强制重新生成，直接返回已有数据
@@ -134,11 +132,11 @@ export class DailyPlansService {
       }
     }
 
-    // 获取用户兴趣（模拟，实际从 UserInterestEntity + InterestEntity 获取）
+    // 获取用户兴趣
     const userInterests = await this.getUserInterests(userId);
 
-    // 获取天气
-    const weather = this.getSimulatedWeather();
+    // 获取天气（历史日期不获取天气）
+    const weather = isHistorical ? null : this.getSimulatedWeather();
 
     // 生成 3 个层级的计划
     const durationTypes: DurationType[] = ['5min', '30min', '2h'];
@@ -147,7 +145,7 @@ export class DailyPlansService {
     for (const durationType of durationTypes) {
       const recommendation = this.recommendActivity(
         userInterests,
-        weather,
+        weather || 'clear',
         timeSlot,
         durationType,
       );
@@ -170,7 +168,7 @@ export class DailyPlansService {
         title: recommendation.title,
         description: recommendation.description,
         category: recommendation.category,
-        weather,
+        weather: weather || undefined,
         status: 'pending',
         isAiGenerated: true,
         sourceInterestId: recommendation.sourceInterestId || undefined,
@@ -213,6 +211,27 @@ export class DailyPlansService {
       where: { userId, planDate: date },
       order: { durationType: 'ASC' },
     });
+  }
+
+  /**
+   * 获取今日已完成计划数（用于进度统计）
+   */
+  async getTodayProgress(userId: string): Promise<{
+    total: number;
+    completed: number;
+    skipped: number;
+    pending: number;
+  }> {
+    const today = this.getTodayDate();
+    const plans = await this.planRepo.find({
+      where: { userId, planDate: today },
+    });
+    return {
+      total: plans.length,
+      completed: plans.filter((p) => p.status === 'completed').length,
+      skipped: plans.filter((p) => p.status === 'skipped').length,
+      pending: plans.filter((p) => p.status === 'pending').length,
+    };
   }
 
   /**
@@ -320,18 +339,17 @@ export class DailyPlansService {
         return ts.slot;
       }
     }
-    return 'morning'; // fallback
+    return 'morning';
   }
 
   /**
    * 获取用户兴趣列表
    *
    * 实际场景应从 UserInterestEntity + InterestEntity 查询，
-   * 此处模拟返回，待 User 模块注入后替换。
+   * 此处模拟返回，待注入 InterestRepository 后替换。
    */
   private async getUserInterests(userId: string): Promise<InterestInfo[]> {
-    // TODO: 注入 UsersService 或 InterestRepository 查询真实数据
-    // 模拟返回
+    // TODO: 注入 InterestRepository 读取真实数据
     return [
       { id: 'default', name: '通用', category: 'other', level: 'beginner' },
     ];
@@ -344,7 +362,6 @@ export class DailyPlansService {
    * 天气数据建议缓存 30 分钟。
    */
   private getSimulatedWeather(): string {
-    // 模拟：根据当前时间随机
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 9) return 'sunny';
     if (hour >= 9 && hour < 12) return 'partly_cloudy';
@@ -357,6 +374,12 @@ export class DailyPlansService {
    * 核心推荐引擎
    *
    * 根据 用户兴趣 × 天气 × 时间段 × 时长 匹配最优活动。
+   *
+   * 算法：
+   * 1. 按时长取模板列表
+   * 2. 天气 + 时段 → 室内/户外倾向 → 排序
+   * 3. 兴趣分类 → 关键词匹配 → 打分
+   * 4. 最高分项 → 生成标题+描述
    */
   private recommendActivity(
     interests: InterestInfo[],
@@ -369,20 +392,15 @@ export class DailyPlansService {
     category: string;
     sourceInterestId?: string;
   } {
-    const isIndoor =
-      WEATHER_INDOOR.includes(weather) || timeSlot === 'evening';
+    const isIndoor = WEATHER_INDOOR.includes(weather) || timeSlot === 'evening';
     const templates = ACTIVITY_TEMPLATES[durationType];
 
-    // 按兴趣倾向选择
-    const interest = interests[0]; // 简化：取第一个兴趣
-    const category = interest.category;
+    const interest = interests[0];
+    const category = interest?.category || 'other';
 
-    // 根据天气和时段调整推荐
-    let filteredTemplates = [...templates];
-
-    // 雨天/晚上 → 偏向室内活动
+    // 天气/时段 → 排序倾向
+    const filteredTemplates = [...templates];
     if (isIndoor) {
-      // 户外活动排在后面
       filteredTemplates.sort((a, b) => {
         const aIndoor = a.indoorOnly ? 0 : 1;
         const bIndoor = b.indoorOnly ? 0 : 1;
@@ -390,20 +408,12 @@ export class DailyPlansService {
       });
     }
 
-    // 按时长关键词匹配
     const durationKeywords: Record<DurationType, string[]> = {
       '5min': ['呼吸', '冥想', '拉伸', '放松', '记录', '喝水', '微笑', '眼部'],
-      '30min': [
-        '运动', '瑜伽', '阅读', '绘画', '音乐', '烹饪',
-        '整理', '散步', '写作', '手工', '语言',
-      ],
-      '2h': [
-        '深度', '技能', '创作', '探险', '社交', '电影',
-        '健身', '烹饪', '手账', '园艺',
-      ],
+      '30min': ['运动', '瑜伽', '阅读', '绘画', '音乐', '烹饪', '整理', '散步', '写作', '手工', '语言'],
+      '2h': ['深度', '技能', '创作', '探险', '社交', '电影', '健身', '烹饪', '手账', '园艺'],
     };
 
-    // 匹配兴趣分类的关键词映射
     const interestCategoryKeywords: Record<string, string[]> = {
       sports: ['运动', '健身', '瑜伽', '散步', '拉伸'],
       arts: ['绘画', '手工', '创作', '写作', '音乐'],
@@ -418,7 +428,6 @@ export class DailyPlansService {
       travel: ['探险', '探索', '户外'],
     };
 
-    // 按兴趣分类匹配
     const matchedKeywords = interestCategoryKeywords[category] || [];
     let bestMatch = filteredTemplates[0];
     let bestScore = 0;
@@ -426,15 +435,10 @@ export class DailyPlansService {
     for (const template of filteredTemplates) {
       let score = 0;
       for (const keyword of matchedKeywords) {
-        if (template.desc.includes(keyword)) {
-          score += 2;
-        }
+        if (template.desc.includes(keyword)) score += 2;
       }
-      // 时长关键词加分
       for (const kw of durationKeywords[durationType]) {
-        if (template.desc.includes(kw)) {
-          score += 1;
-        }
+        if (template.desc.includes(kw)) score += 1;
       }
       if (score > bestScore) {
         bestScore = score;
@@ -442,19 +446,18 @@ export class DailyPlansService {
       }
     }
 
-    // 生成标题（取描述前半部分）
     const [titlePart, ...descParts] = bestMatch.desc.split(' - ');
     const title = titlePart.trim();
     const description =
       descParts.length > 0
         ? descParts.join(' - ').trim()
-        : `根据您的兴趣「${interest.name}」推荐。${isIndoor ? ' 适合在室内完成。' : ' 天气不错，可以尝试户外活动。'}`;
+        : `根据您的兴趣「${interest?.name || '通用'}」推荐。${isIndoor ? ' 适合在室内完成。' : ' 天气不错，可以尝试户外活动。'}`;
 
     return {
       title,
       description,
       category,
-      sourceInterestId: interest.id,
+      sourceInterestId: interest?.id,
     };
   }
 }
