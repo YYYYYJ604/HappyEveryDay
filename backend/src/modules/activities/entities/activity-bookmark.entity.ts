@@ -4,6 +4,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AbstractEntity } from '../../../common/database/abstract.entity';
 
 /**
@@ -18,14 +19,18 @@ import { AbstractEntity } from '../../../common/database/abstract.entity';
 @Index(['targetType', 'targetId'])
 export class ActivityBookmarkEntity extends AbstractEntity {
   @Column({ name: 'user_id', type: 'uuid' })
+  @ApiProperty({ description: '用户 ID', example: 'user-uuid' })
   userId: string;
 
   @Column({ name: 'target_type', type: 'varchar', length: 30 })
+  @ApiProperty({ description: '收藏目标类型', example: 'activity' })
   targetType: string;
 
   @Column({ name: 'target_id', type: 'uuid' })
+  @ApiProperty({ description: '收藏目标 ID（活动 UUID）', example: 'activity-uuid' })
   targetId: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
+  @ApiPropertyOptional({ description: '收藏备注', example: '下次再试试' })
   note?: string;
 }
