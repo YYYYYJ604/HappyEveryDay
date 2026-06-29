@@ -15,13 +15,14 @@ class ApiConfig {
   static String get baseUrl {
     switch (AppConfig.env) {
       case Env.dev:
-        return 'http://localhost:3000/api/v1';
+        return 'http://10.0.2.2:3000/api/v1';
       case Env.test:
         return 'https://test-api.happy-everyday.app/api/v1';
       case Env.prod:
         return 'https://api.happy-everyday.app/api/v1';
     }
   }
+
   static const int connectTimeout = 10000;
   static const int receiveTimeout = 15000;
   static const int sendTimeout = 10000;

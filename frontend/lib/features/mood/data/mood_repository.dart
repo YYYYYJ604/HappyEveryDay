@@ -26,17 +26,25 @@ class MoodRepositoryImpl implements MoodRepository {
   }
 
   @override
-  Future<PaginatedResponse<MoodRecordModel>> getHistory(MoodQueryParams params) async {
+  Future<PaginatedResponse<MoodRecordModel>> getHistory(
+    MoodQueryParams params,
+  ) async {
     final resp = await _api.getHistory(params.toQuery());
     return PaginatedResponse.fromApiResponse(
-      ApiResponse<List<dynamic>>(code: resp.code, message: resp.message, data: resp.data as List<dynamic>?, meta: resp.meta),
+      ApiResponse<List<dynamic>>(
+        code: resp.code,
+        message: resp.message,
+        data: resp.data,
+        meta: resp.meta,
+      ),
       (json) => MoodRecordModel.fromJson(json as Map<String, dynamic>),
     );
   }
 
   @override
   Future<MoodRecordModel?> getLatest() async {
-    if (_cache.has('mood_latest')) return _cache.get<MoodRecordModel>('mood_latest');
+    if (_cache.has('mood_latest'))
+      return _cache.get<MoodRecordModel>('mood_latest');
     final resp = await _api.getLatest();
     if (resp.data == null) return null;
     final model = MoodRecordModel.fromJson(resp.data!);
@@ -46,7 +54,7 @@ class MoodRepositoryImpl implements MoodRepository {
 
   @override
   Future<MoodMonthStatModel> getMonthlyStats(int year, int month) async {
-    final cacheKey = 'mood_stats_\_\';
+    final cacheKey = 'mood_stats_${year}_${month}';
     if (_cache.has(cacheKey)) return _cache.get<MoodMonthStatModel>(cacheKey)!;
     final resp = await _api.getMonthlyStats(year, month);
     final model = MoodMonthStatModel.fromJson(resp.data!);

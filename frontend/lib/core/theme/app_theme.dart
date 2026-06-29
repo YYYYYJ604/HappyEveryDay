@@ -14,7 +14,7 @@ class AppTheme {
       useMaterial3: true, fontFamily: AppTypography.fontFamily, colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0, backgroundColor: Colors.white, foregroundColor: AppColors.textPrimary, titleTextStyle: AppTypography.headlineSmall),
-      cardTheme: CardTheme(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.border, width: 0.5)), color: Colors.white),
+      cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.border, width: 0.5)), color: Colors.white),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(backgroundColor: Colors.white, selectedItemColor: AppColors.primary, unselectedItemColor: AppColors.textTertiary, type: BottomNavigationBarType.fixed, elevation: 8),
       elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), textStyle: AppTypography.buttonLarge)),
       outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: const BorderSide(color: AppColors.primary), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), textStyle: AppTypography.buttonMedium)),
@@ -36,7 +36,7 @@ class AppTheme {
       useMaterial3: true, fontFamily: AppTypography.fontFamily, colorScheme: colorScheme,
       brightness: Brightness.dark, scaffoldBackgroundColor: AppColors.darkBackground,
       appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0, backgroundColor: AppColors.darkSurface, foregroundColor: AppColors.darkTextPrimary),
-      cardTheme: CardTheme(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.darkBorder, width: 0.5)), color: AppColors.darkSurface),
+      cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.darkBorder, width: 0.5)), color: AppColors.darkSurface),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(backgroundColor: AppColors.darkSurface, selectedItemColor: AppColors.primary, unselectedItemColor: AppColors.textTertiary, type: BottomNavigationBarType.fixed, elevation: 8),
       dividerTheme: const DividerThemeData(color: AppColors.darkBorder, thickness: 1),
     );

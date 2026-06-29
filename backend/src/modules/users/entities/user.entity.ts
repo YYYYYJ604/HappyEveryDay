@@ -16,8 +16,8 @@ import { UserInterestEntity } from './user-interest.entity';
  */
 @Entity({ name: 'users' })
 export class UserEntity extends AbstractEntity {
-  @Column({ type: 'varchar', length: 20 })
-  phone: string;
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  phone?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   email?: string;

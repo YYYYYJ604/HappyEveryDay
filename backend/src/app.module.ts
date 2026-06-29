@@ -8,6 +8,8 @@ import { ActivitiesModule } from './modules/activities/activities.module';
 import { DailyPlansModule } from './modules/daily-plans/daily-plans.module';
 import { MoodsModule } from './modules/moods/moods.module';
 import { InterestsModule } from './modules/interests/interests.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './common/mail/mail.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { InterestsModule } from './modules/interests/interests.module';
     DailyPlansModule,
     MoodsModule,
     InterestsModule,
+    AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

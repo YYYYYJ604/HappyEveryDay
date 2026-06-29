@@ -1,6 +1,4 @@
-﻿import '../../../core/network/api_response.dart';
-import '../../../core/storage/secure_storage.dart';
-import '../../../shared/models/user_model.dart';
+﻿import '../../../core/storage/secure_storage.dart';
 import '../models/auth_models.dart';
 import 'auth_api.dart';
 
@@ -31,7 +29,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthTokenModel> register(RegisterRequest request) async {
     final resp = await _api.register(request.toJson());
-    final token = AuthTokenModel.fromJson(resp.data!);
+    final token = AuthTokenModel.fromJson(resp.data as Map<String, dynamic>);
     await _storage.saveAccessToken(token.accessToken);
     await _storage.saveRefreshToken(token.refreshToken);
     return token;
@@ -49,13 +47,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> sendSms(String phone, String type) async {
-    await _api.sendSms({'phone': phone, 'type': type});
+  Future<void> sendSms(String email, String type) async {
+    await _api.sendVerificationCode({'email': email, 'type': type});
   }
 
   @override
-  Future<bool> verifySms(String phone, String code) async {
-    final resp = await _api.verifySms({'phone': phone, 'code': code});
+  Future<bool> verifySms(String email, String code) async {
+    final resp = await _api.verifySms({'email': email, 'code': code});
     return resp.isSuccess;
   }
 

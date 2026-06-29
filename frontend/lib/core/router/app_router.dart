@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import 'package:happy_every_day/features/auth/presentation/pages/register_page.dart';
+import 'package:happy_every_day/features/home/presentation/pages/home_page.dart';
 
 class RouteNames {
   static const String splash = 'splash';
@@ -22,36 +25,97 @@ class AppRouter {
   static final _rootNavKey = GlobalKey<NavigatorState>();
   static final _shellNavKey = GlobalKey<NavigatorState>();
 
-  static GoRouter create(Ref ref) {
+  static GoRouter create(WidgetRef ref) {
     return GoRouter(
       navigatorKey: _rootNavKey,
-      initialLocation: '/',
+      initialLocation: '/login',
       redirect: (context, state) {
         final authenticated = ref.read(authProvider).isAuthenticated;
-        final onAuthPage = state.matchedLocation == '/login';
-        if (!authenticated && !onAuthPage && state.matchedLocation != '/') return '/login';
+        //final onAuthPage = state.matchedLocation == '/login';
+        final onAuthPage =
+            state.matchedLocation == '/login' ||
+            state.matchedLocation == '/register';
+        if (!authenticated && !onAuthPage && state.matchedLocation != '/')
+          return '/login';
         if (authenticated && onAuthPage) return '/home';
         return null;
       },
       routes: [
-        GoRoute(path: '/', name: RouteNames.splash, builder: (_, __) => const _Placeholder('Splash')),
-        GoRoute(path: '/login', name: RouteNames.login, builder: (_, __) => const _Placeholder('Login')),
-        GoRoute(path: '/register', name: RouteNames.register, builder: (_, __) => const _Placeholder('Register')),
+        GoRoute(
+          path: '/',
+          name: RouteNames.splash,
+          builder: (_, _) => const _Placeholder('Splash'),
+        ),
+        GoRoute(
+          path: '/login',
+          name: RouteNames.login,
+          builder: (_, _) => const LoginPage(),
+        ),
+        GoRoute(
+          path: '/register',
+          name: RouteNames.register,
+          builder: (_, _) => const RegisterPage(),
+        ),
         ShellRoute(
           navigatorKey: _shellNavKey,
-          builder: (_, __, child) => _Shell(child: child),
+          builder: (_, _, child) => _Shell(child: child),
           routes: [
-            GoRoute(path: '/home', name: RouteNames.home, builder: (_, __) => const _Placeholder('Home')),
-            GoRoute(path: '/home/plan', name: RouteNames.planList, builder: (_, __) => const _Placeholder('Plans')),
-            GoRoute(path: '/home/mood', name: RouteNames.moodCheckin, builder: (_, __) => const _Placeholder('Mood')),
-            GoRoute(path: '/home/discovery', name: RouteNames.discovery, builder: (_, __) => const _Placeholder('Discover')),
-            GoRoute(path: '/home/profile', name: RouteNames.profile, builder: (_, __) => const _Placeholder('Profile')),
+            GoRoute(
+              path: '/home',
+              name: RouteNames.home,
+              builder: (_, _) => const HomePage(),
+            ),
+            GoRoute(
+              path: '/home/plan',
+              name: RouteNames.planList,
+              builder: (_, _) => const _Placeholder('Plans'),
+            ),
+            GoRoute(
+              path: '/home/mood',
+              name: RouteNames.moodCheckin,
+              builder: (_, _) => const _Placeholder('Mood'),
+            ),
+            GoRoute(
+              path: '/home/discovery',
+              name: RouteNames.discovery,
+              builder: (_, _) => const _Placeholder('Discover'),
+            ),
+            GoRoute(
+              path: '/home/profile',
+              name: RouteNames.profile,
+              builder: (_, _) => const _Placeholder('Profile'),
+            ),
           ],
         ),
-        GoRoute(path: '/plan/detail/:id', name: RouteNames.planDetail, builder: (_, __) => const _Placeholder('Plan Detail')),
-        GoRoute(path: '/mood/history', name: RouteNames.moodHistory, builder: (_, __) => const _Placeholder('Mood History')),
-        GoRoute(path: '/settings', name: RouteNames.settings, builder: (_, __) => const _Placeholder('Settings')),
-        GoRoute(path: '/notifications', name: RouteNames.notifications, builder: (_, __) => const _Placeholder('Notifications')),
+        GoRoute(
+          path: '/plan/detail/:id',
+          name: RouteNames.planDetail,
+          builder: (_, _) => const _Placeholder('Plan Detail'),
+        ),
+        GoRoute(
+          path: '/mood/history',
+          name: RouteNames.moodHistory,
+          builder: (_, _) => const _Placeholder('Mood History'),
+        ),
+        GoRoute(
+          path: '/settings',
+          name: RouteNames.settings,
+          builder: (_, _) => const _Placeholder('Settings'),
+        ),
+        GoRoute(
+          path: '/notifications',
+          name: RouteNames.notifications,
+          builder: (context, _) => Scaffold(
+            appBar: AppBar(
+              title: const Text('通知'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.go('/home'),
+              ),
+            ),
+            body: const Center(child: Text('暂无通知')),
+          ),
+        ),
       ],
     );
   }
@@ -65,12 +129,29 @@ class _Shell extends StatelessWidget {
     body: child,
     bottomNavigationBar: BottomNavigationBar(
       currentIndex: _index(context),
-      onTap: (i) => GoRouter.of(context).go(['/home', '/home/plan', '/home/mood', '/home/discovery', '/home/profile'][i]),
+      onTap: (i) => GoRouter.of(context).go(
+        [
+          '/home',
+          '/home/plan',
+          '/home/mood',
+          '/home/discovery',
+          '/home/profile',
+        ][i],
+      ),
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: '首页'),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: '计划'),
-        BottomNavigationBarItem(icon: Icon(Icons.emoji_emotions_outlined), label: '心情'),
-        BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: '发现'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.assignment_outlined),
+          label: '计划',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.emoji_emotions_outlined),
+          label: '心情',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.explore_outlined),
+          label: '发现',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: '我的'),
       ],
     ),
@@ -89,5 +170,8 @@ class _Placeholder extends StatelessWidget {
   final String title;
   const _Placeholder(this.title);
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text(title)), body: Center(child: Text('\n开发中...', textAlign: TextAlign.center)));
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: Center(child: Text('\n开发中...', textAlign: TextAlign.center)),
+  );
 }

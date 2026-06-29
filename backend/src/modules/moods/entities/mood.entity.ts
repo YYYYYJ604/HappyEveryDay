@@ -9,8 +9,7 @@ import { AbstractEntity } from '../../../common/database/abstract.entity';
 /**
  * 心情记录实体
  *
- * 映射 mood_records 表（DDL 第 20 号表）。
- * 用户每日的心情记录，支持简化心情等级映射。
+ * 用户每日的心情记录，支持 4 种简化的心情等级。
  */
 @Entity({ name: 'mood_records' })
 @Index(['userId', 'recordDate'])
@@ -20,12 +19,8 @@ export class MoodEntity extends AbstractEntity {
   @ApiProperty({ description: '用户 ID', example: 'user-uuid' })
   userId: string;
 
-  @Column({ name: 'mood_type', type: 'varchar', length: 20 })
-  @ApiProperty({
-    description: '心情类型',
-    example: 'happy',
-    enum: ['happy', 'sad', 'anxious', 'calm', 'angry', 'excited', 'tired', 'neutral', 'lonely', 'grateful'],
-  })
+    @Column({ name: 'mood_type', type: 'varchar', length: 20 })
+  @ApiProperty({ description: '心情类型', example: 'happy' })
   moodType: string;
 
   @Column({ type: 'smallint' })
@@ -36,11 +31,11 @@ export class MoodEntity extends AbstractEntity {
   @ApiPropertyOptional({ description: '心情日记/备注', example: '今天天气很好，心情不错' })
   journal?: string;
 
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'simple-array', nullable: true })
   @ApiPropertyOptional({ description: '自定义标签', example: ['工作', '健康'] })
   tags?: string[];
 
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'simple-array', nullable: true })
   @ApiPropertyOptional({ description: '影响因素', example: ['天气', '社交'] })
   factors?: string[];
 
@@ -53,11 +48,13 @@ export class MoodEntity extends AbstractEntity {
   sleepHours?: number;
 
   @Column({ name: 'record_date', type: 'date' })
-  @ApiProperty({ description: '记录日期 YYYY-MM-DD', example: '2026-06-25' })
+
+  @ApiProperty({ description: '记录日期', example: '2026-06-25' })
   recordDate: string;
 
   @Column({ name: 'record_time', type: 'time' })
-  @ApiProperty({ description: '记录时间 HH:mm:ss', example: '14:30:00' })
+
+  @ApiProperty({ description: '记录时间', example: '14:30:00' })
   recordTime: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })

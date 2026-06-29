@@ -9,11 +9,24 @@ abstract class InterestRepository {
   Future<List<UserInterestModel>> getMyInterests();
   Future<List<UserInterestModel>> select(SelectInterestRequest request);
   Future<void> remove(String interestId);
-  Future<UserInterestModel> updateLevel(String interestId, UpdateInterestLevelRequest request);
-  Future<PaginatedResponse<InterestTaskModel>> getTasks(String interestId, InterestTaskQueryParams params);
-  Future<PaginatedResponse<InterestTaskModel>> getRecommendedTasks(InterestTaskQueryParams params);
-  Future<List<InterestGrowthModel>> getGrowthRecords(InterestGrowthQueryParams params);
-  Future<InterestMonthlySummaryModel> getMonthlySummary({int? year, int? month});
+  Future<UserInterestModel> updateLevel(
+    String interestId,
+    UpdateInterestLevelRequest request,
+  );
+  Future<PaginatedResponse<InterestTaskModel>> getTasks(
+    String interestId,
+    InterestTaskQueryParams params,
+  );
+  Future<PaginatedResponse<InterestTaskModel>> getRecommendedTasks(
+    InterestTaskQueryParams params,
+  );
+  Future<List<InterestGrowthModel>> getGrowthRecords(
+    InterestGrowthQueryParams params,
+  );
+  Future<InterestMonthlySummaryModel> getMonthlySummary({
+    int? year,
+    int? month,
+  });
 }
 
 class InterestRepositoryImpl implements InterestRepository {
@@ -26,7 +39,11 @@ class InterestRepositoryImpl implements InterestRepository {
     const key = 'interests_all';
     if (_cache.has(key)) return _cache.get<List<InterestModel>>(key)!;
     final resp = await _api.getAll();
-    final items = (resp.data as List<dynamic>?)?.map((e) => InterestModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    final items =
+        (resp.data)
+            ?.map((e) => InterestModel.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
     _cache.set(key, items, ttl: Duration(hours: 1));
     return items;
   }
@@ -42,7 +59,11 @@ class InterestRepositoryImpl implements InterestRepository {
     const key = 'interests_mine';
     if (_cache.has(key)) return _cache.get<List<UserInterestModel>>(key)!;
     final resp = await _api.getMyInterests();
-    final items = (resp.data as List<dynamic>?)?.map((e) => UserInterestModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    final items =
+        (resp.data)
+            ?.map((e) => UserInterestModel.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
     _cache.set(key, items, ttl: Duration(minutes: 2));
     return items;
   }
@@ -51,7 +72,10 @@ class InterestRepositoryImpl implements InterestRepository {
   Future<List<UserInterestModel>> select(SelectInterestRequest request) async {
     final resp = await _api.select(request.toJson());
     _cache.remove('interests_mine');
-    return (resp.data as List<dynamic>?)?.map((e) => UserInterestModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    return (resp.data)
+            ?.map((e) => UserInterestModel.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
   }
 
   @override
@@ -61,40 +85,69 @@ class InterestRepositoryImpl implements InterestRepository {
   }
 
   @override
-  Future<UserInterestModel> updateLevel(String interestId, UpdateInterestLevelRequest request) async {
+  Future<UserInterestModel> updateLevel(
+    String interestId,
+    UpdateInterestLevelRequest request,
+  ) async {
     final resp = await _api.updateLevel(interestId, request.toJson());
     _cache.remove('interests_mine');
     return UserInterestModel.fromJson(resp.data!);
   }
 
   @override
-  Future<PaginatedResponse<InterestTaskModel>> getTasks(String interestId, InterestTaskQueryParams params) async {
+  Future<PaginatedResponse<InterestTaskModel>> getTasks(
+    String interestId,
+    InterestTaskQueryParams params,
+  ) async {
     final resp = await _api.getTasks(interestId, params.toQuery());
     return PaginatedResponse.fromApiResponse(
-      ApiResponse<List<dynamic>>(code: resp.code, message: resp.message, data: resp.data as List<dynamic>?, meta: resp.meta),
+      ApiResponse<List<dynamic>>(
+        code: resp.code,
+        message: resp.message,
+        data: resp.data,
+        meta: resp.meta,
+      ),
       (json) => InterestTaskModel.fromJson(json as Map<String, dynamic>),
     );
   }
 
   @override
-  Future<PaginatedResponse<InterestTaskModel>> getRecommendedTasks(InterestTaskQueryParams params) async {
+  Future<PaginatedResponse<InterestTaskModel>> getRecommendedTasks(
+    InterestTaskQueryParams params,
+  ) async {
     final resp = await _api.getRecommendedTasks(params.toQuery());
     return PaginatedResponse.fromApiResponse(
-      ApiResponse<List<dynamic>>(code: resp.code, message: resp.message, data: resp.data as List<dynamic>?, meta: resp.meta),
+      ApiResponse<List<dynamic>>(
+        code: resp.code,
+        message: resp.message,
+        data: resp.data,
+        meta: resp.meta,
+      ),
       (json) => InterestTaskModel.fromJson(json as Map<String, dynamic>),
     );
   }
 
   @override
-  Future<List<InterestGrowthModel>> getGrowthRecords(InterestGrowthQueryParams params) async {
+  Future<List<InterestGrowthModel>> getGrowthRecords(
+    InterestGrowthQueryParams params,
+  ) async {
     final resp = await _api.getGrowthRecords(params.toQuery());
-    return (resp.data as List<dynamic>?)?.map((e) => InterestGrowthModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    return (resp.data)
+            ?.map(
+              (e) => InterestGrowthModel.fromJson(e as Map<String, dynamic>),
+            )
+            .toList() ??
+        [];
   }
 
   @override
-  Future<InterestMonthlySummaryModel> getMonthlySummary({int? year, int? month}) async {
-    final cacheKey = 'interest_summary_\_\';
-    if (_cache.has(cacheKey)) return _cache.get<InterestMonthlySummaryModel>(cacheKey)!;
+  Future<InterestMonthlySummaryModel> getMonthlySummary({
+    int? year,
+    int? month,
+  }) async {
+    final cacheKey = 'interest_summary_${year}_${month}';
+    if (_cache.has(cacheKey))
+      return _cache.get<InterestMonthlySummaryModel>(cacheKey)!;
     final resp = await _api.getMonthlySummary(year, month);
     final model = InterestMonthlySummaryModel.fromJson(resp.data!);
     _cache.set(cacheKey, model, ttl: Duration(minutes: 5));

@@ -31,9 +31,10 @@ import { ENV } from '../config';
         migrationsRun: configService.get<string>('DB_MIGRATIONS_RUN') === 'true',
 
         // 开发环境下可开启同步（注意：生产环境禁用！）
-        synchronize: false,
+        synchronize: true,
 
         // 连接后执行 SQL（设置时区等）
+        timezone: 'Asia/Shanghai',
         extra: {
           max: 20,
           idleTimeoutMillis: 30000,

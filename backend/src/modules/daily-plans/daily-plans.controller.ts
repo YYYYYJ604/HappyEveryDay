@@ -10,6 +10,8 @@ import {
   BadRequestException,
   HttpCode,
   HttpStatus,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,6 +28,8 @@ import {
   ApiExtraModels,
   getSchemaPath,
 } from '@nestjs/swagger';
+import type { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 import { DailyPlansService } from './daily-plans.service';
 import {
   GeneratePlanDto,
@@ -44,6 +48,7 @@ import { DailyPlanEntity } from './entities/daily-plan.entity';
  */
 @ApiTags('每日计划')
 @ApiBearerAuth('JWT-auth')
+@UseGuards(AuthGuard('jwt'))
 @ApiExtraModels(PlanItemDto, GeneratePlanResponseDto, TodayProgressDto)
 @Controller('daily-plans')
 export class DailyPlansController {
@@ -89,9 +94,8 @@ export class DailyPlansController {
       },
     },
   })
-  async generate(@Body() dto: GeneratePlanDto) {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async generate(@Body() dto: GeneratePlanDto, @Req() req: Request) {
+    const userId = (req.user as any).id;
     const result = await this.dailyPlansService.generate(userId, dto);
     return { data: result };
   }
@@ -123,9 +127,8 @@ export class DailyPlansController {
       },
     },
   })
-  async findToday() {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async findToday(@Req() req: Request) {
+    const userId = (req.user as any).id;
     const plans = await this.dailyPlansService.findToday(userId);
     return { data: plans };
   }
@@ -144,9 +147,8 @@ export class DailyPlansController {
     description: '今日进度统计',
     type: TodayProgressDto,
   })
-  async todayProgress() {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async todayProgress(@Req() req: Request) {
+    const userId = (req.user as any).id;
     const progress = await this.dailyPlansService.getTodayProgress(userId);
     return { data: progress };
   }
@@ -181,12 +183,11 @@ export class DailyPlansController {
       },
     },
   })
-  async findByDate(@Param('date') date: string) {
+  async findByDate(@Param('date') date: string, @Req() req: Request) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       throw new BadRequestException('日期格式错误，预期 YYYY-MM-DD');
     }
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+    const userId = (req.user as any).id;
     const plans = await this.dailyPlansService.findByDate(userId, date);
     return { data: plans };
   }
@@ -252,9 +253,8 @@ export class DailyPlansController {
       },
     },
   })
-  async findHistory(@Query() query: DailyPlanQueryDto) {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async findHistory(@Query() query: DailyPlanQueryDto, @Req() req: Request) {
+    const userId = (req.user as any).id;
     const result = await this.dailyPlansService.findHistory(userId, query);
     return { data: result.items, total: result.total };
   }
@@ -292,9 +292,8 @@ export class DailyPlansController {
   @ApiNotFoundResponse({ description: '计划不存在' })
   @ApiConflictResponse({ description: '该计划已完成' })
   @ApiBadRequestResponse({ description: 'UUID 格式错误' })
-  async complete(@Param('id', ParseUUIDPipe) id: string) {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async complete(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    const userId = (req.user as any).id;
     const plan = await this.dailyPlansService.complete(userId, id);
     return { data: plan };
   }
@@ -328,9 +327,8 @@ export class DailyPlansController {
   @ApiNotFoundResponse({ description: '计划不存在' })
   @ApiConflictResponse({ description: '已完成计划不可跳过' })
   @ApiBadRequestResponse({ description: 'UUID 格式错误' })
-  async skip(@Param('id', ParseUUIDPipe) id: string) {
-    // TODO: 从 JWT 获取当前用户 ID
-    const userId = 'current-user-id';
+  async skip(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    const userId = (req.user as any).id;
     const plan = await this.dailyPlansService.skip(userId, id);
     return { data: plan };
   }

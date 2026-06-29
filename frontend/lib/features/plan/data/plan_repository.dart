@@ -30,7 +30,7 @@ class PlanRepositoryImpl implements PlanRepository {
     const cacheKey = 'plan_today';
     if (_cache.has(cacheKey)) return _cache.get<List<PlanItemModel>>(cacheKey)!;
     final resp = await _api.getToday();
-    final items = (resp.data as List<dynamic>?)?.map((e) => PlanItemModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    final items = (resp.data)?.map((e) => PlanItemModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
     _cache.set(cacheKey, items, ttl: Duration(minutes: 1));
     return items;
   }
@@ -44,14 +44,14 @@ class PlanRepositoryImpl implements PlanRepository {
   @override
   Future<List<PlanItemModel>> getByDate(String date) async {
     final resp = await _api.getByDate(date);
-    return (resp.data as List<dynamic>?)?.map((e) => PlanItemModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
+    return (resp.data)?.map((e) => PlanItemModel.fromJson(e as Map<String, dynamic>)).toList() ?? [];
   }
 
   @override
   Future<PaginatedResponse<PlanItemModel>> getHistory(PlanQueryParams params) async {
     final resp = await _api.getHistory(params.toQuery());
     return PaginatedResponse.fromApiResponse(
-      ApiResponse<List<dynamic>>(code: resp.code, message: resp.message, data: resp.data as List<dynamic>?, meta: resp.meta),
+      ApiResponse<List<dynamic>>(code: resp.code, message: resp.message, data: resp.data, meta: resp.meta),
       (json) => PlanItemModel.fromJson(json as Map<String, dynamic>),
     );
   }

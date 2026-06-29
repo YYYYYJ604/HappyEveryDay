@@ -1,9 +1,9 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/dio_client.dart';
-import '../../../core/storage/cache_manager.dart';
-import '../models/mood_models.dart';
-import 'mood_api.dart';
-import 'mood_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../../core/storage/cache_manager.dart';
+import '../../models/mood_models.dart';
+import '../../data/mood_api.dart';
+import '../../data/mood_repository.dart';
 
 final moodApiProvider = Provider<MoodApi>((ref) => MoodApi(DioClient.instance.dio));
 final moodRepositoryProvider = Provider<MoodRepository>((ref) {

@@ -3,13 +3,16 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String refreshToken = '/auth/refresh';
+  static const String sendSms = '/auth/sms/send';
+  static const String verifySms = '/auth/sms/verify';
   static const String userProfile = '/users/profile';
   static const String interests = '/interests';
   static const String myInterests = '/interests/user/mine';
   static const String selectInterests = '/interests/user/select';
   static const String interestTasks = '/interests/tasks/recommended';
   static const String interestGrowth = '/interests/growth/mine';
-  static const String interestMonthlySummary = '/interests/growth/monthly-summary';
+  static const String interestMonthlySummary =
+      '/interests/growth/monthly-summary';
   static const String dailyPlans = '/daily-plans';
   static const String dailyPlanGenerate = '/daily-plans/generate';
   static const String dailyPlanToday = '/daily-plans/today';
